@@ -1,5 +1,6 @@
 package com.stathis.giakoumis.homesecurity;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -56,7 +57,7 @@ public class PasswordActivity extends AppCompatActivity {
             String responseJson = null;
 
             try {
-                URL url = new URL("http://192.168.1.72:3000/api/password/"+pass);
+                URL url = new URL("http://192.168.1.65:3000/api/password/"+pass);
 
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
@@ -99,9 +100,20 @@ public class PasswordActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            Toast toast = Toast.makeText(getApplicationContext(),s,Toast.LENGTH_LONG);
-            toast.show();
 
+            if (s != "") {
+
+                Toast toast = Toast.makeText(getApplicationContext(), "Correct", Toast.LENGTH_LONG);
+                toast.show();
+
+
+                Intent securityPanelIntent = new Intent(getApplicationContext(), HomeSecurityPanel.class);
+                startActivity(securityPanelIntent);
+            }else {
+                Toast toast = Toast.makeText(getApplicationContext(), "Wrong Password", Toast.LENGTH_LONG);
+                toast.show();
+
+            }
         }
     }
 }

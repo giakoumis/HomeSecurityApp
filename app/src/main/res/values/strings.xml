@@ -2,4 +2,5 @@
     <string name="app_name">HomeSecurity</string>
     <string name="password_label">Enter Password</string>
     <string name="button_submit_label">Submit</string>
+    <string name="alarm_arm_label">ARM Alarm</string>
 </resources>
