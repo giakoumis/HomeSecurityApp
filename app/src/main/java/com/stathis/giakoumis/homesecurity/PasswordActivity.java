@@ -2,10 +2,12 @@ package com.stathis.giakoumis.homesecurity;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.security.keystore.KeyNotYetValidException;
 import android.support.annotation.IdRes;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telephony.SmsManager;
 import android.text.Editable;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,12 +17,23 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.nkzawa.emitter.Emitter;
+import com.github.nkzawa.engineio.client.Socket;
+import com.github.nkzawa.socketio.client.IO;
+
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 public class PasswordActivity extends AppCompatActivity implements View.OnClickListener{
@@ -30,11 +43,21 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
    // Button  btn_submit;
    // KeyboardView myKeyboard;
    EditText mPasswordField;
+
+    private com.github.nkzawa.socketio.client.Socket mSocket;
+    {
+        try {
+            mSocket = IO.socket("http://192.168.1.65:4732");
+        } catch (URISyntaxException e) {}
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.keyboard);
         initViews();
+       // connectWebSocket();
+        mSocket.on("Alarm",onNewMessage);
+        mSocket.connect();
 
        //   myKeyboard = new KeyboardView(this);
 
@@ -56,6 +79,58 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
      */
     }
 
+    private Emitter.Listener onNewMessage = new Emitter.Listener() {
+
+
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject data = (JSONObject) args[0];
+                    String username;
+                    String message;
+                    try {
+                       // username = data.getString("username");
+                        message = data.getString("msg");
+                    } catch (JSONException e) {
+                        return;
+                    }
+
+                    // add the message to view
+
+                    alarmTriggered(message);
+                }
+            });
+        }
+    };
+
+    private void alarmTriggered(String message) {
+        Toast toast = Toast.makeText(getApplicationContext(),message, Toast.LENGTH_LONG);
+        toast.show();
+
+        //send sms
+        sendSms();
+    }
+
+    private void sendSms() {
+        try{
+            SmsManager smsManager= SmsManager.getDefault();
+            smsManager.sendTextMessage("6946114743",null,"Security Breach",null,null);
+        }
+        catch (Exception e){
+           // Toast.makeText(getApplicationContext(),"Sms Failed",)
+        }
+
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mPasswordField.setText("");
+    }
+
     private void initViews() {
         mPasswordField = (EditText)findViewById(R.id.password_field);
         $(R.id.t9_key_0).setOnClickListener(this);
@@ -72,6 +147,9 @@ public class PasswordActivity extends AppCompatActivity implements View.OnClickL
         $(R.id.t9_key_backspace).setOnClickListener(this);
         $(R.id.t9_key_submin).setOnClickListener(this);
     }
+
+
+
 
     @Override
     public void onClick(View v) {

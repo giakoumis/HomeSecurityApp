@@ -15,7 +15,8 @@
         android:paddingLeft="8dp"
         android:paddingRight="8dp"
         android:singleLine="true"
-        android:textAppearance="?android:attr/textAppearanceMedium"/>
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:inputType="textPassword"/>
 
     <TableLayout
         android:id="@+id/keyboard"
